@@ -117,6 +117,22 @@ class ExportServiceTest {
   }
 
   @Test
+  void exportVault_EncryptedAlias_ShouldReturnEncryptedData() {
+    when(userRepository.findByUsernameOrThrow("testuser")).thenReturn(user);
+    when(vaultEntryRepository.findByUserIdAndIsDeletedFalse(1L)).thenReturn(List.of(sampleEntry));
+    when(backupExportRepository.save(any(BackupExport.class))).thenAnswer(i -> i.getArgument(0));
+    when(encryptionService.encryptForExport(anyString(), eq("myPassword"), anyString()))
+        .thenReturn("encryptedPayload123");
+
+    ExportResponse response = exportService.exportVault("testuser", "ENCRYPTED", "myPassword");
+
+    assertNotNull(response);
+    assertEquals("ENCRYPTED", response.getFormat());
+    assertTrue(response.isEncrypted());
+    assertTrue(response.getData().contains("encryptedPayload123"));
+  }
+
+  @Test
   void exportVault_WithNullPassword_ShouldNotEncrypt() {
     when(userRepository.findByUsernameOrThrow("testuser")).thenReturn(user);
     when(vaultEntryRepository.findByUserIdAndIsDeletedFalse(1L)).thenReturn(List.of(sampleEntry));

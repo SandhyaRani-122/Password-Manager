@@ -41,6 +41,8 @@ public class SecurityConfig {
                 "/api/generator/**",
                 "/api/health/**",
                 "/actuator/health",
+                "/actuator/health/**",
+                "/actuator/info",
                 "/api/shares/*", // public share token access (Feature 35) — GET /{token} is unauthenticated
                 "/api/emergency/vault/*", // public emergency vault access (Feature 39) — GET /{token} is
                                           // unauthenticated

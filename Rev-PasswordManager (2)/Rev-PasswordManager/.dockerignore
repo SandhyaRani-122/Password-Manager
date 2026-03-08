@@ -4,6 +4,7 @@
 
 # IDE
 .idea
+.m2
 *.iml
 *.iws
 *.ipr
@@ -19,12 +20,20 @@ target
 logs
 *.log
 
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Infrastructure and planning
+infra
+plans
+deploy
+Rev-PasswordManager
+*.png
+
 # Test files
 src/test
-
-# Documentation
-README.md
-*.md
 
 # Docker files
 Dockerfile
@@ -36,11 +45,6 @@ node_modules
 
 # Frontend directory
 frontend
-
-# Local environment files
-.env
-.env.local
-.env.*.local
 
 # OS files
 .DS_Store

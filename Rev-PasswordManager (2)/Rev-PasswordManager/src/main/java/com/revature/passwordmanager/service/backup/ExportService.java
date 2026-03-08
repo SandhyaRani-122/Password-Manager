@@ -50,7 +50,8 @@ public class ExportService {
     User user = userRepository.findByUsernameOrThrow(username);
 
     List<VaultEntry> entries = vaultEntryRepository.findByUserIdAndIsDeletedFalse(user.getId());
-    ExportFormat exportFormat = ExportFormat.valueOf(format.toUpperCase());
+    String normalizedFormat = normalizeFormat(format);
+    ExportFormat exportFormat = resolveExportFormat(normalizedFormat);
 
     // Derive the encryption key for decrypting passwords
     SecretKey key = encryptionService.deriveKey(user.getMasterPasswordHash(), user.getSalt());
@@ -77,7 +78,7 @@ public class ExportService {
     BackupExport export = BackupExport.builder()
         .user(user)
         .exportFormat(exportFormat)
-        .fileName("vault_export_" + System.currentTimeMillis() + "." + format.toLowerCase())
+        .fileName("vault_export_" + System.currentTimeMillis() + "." + exportFormat.name().toLowerCase())
         .entryCount(entries.size())
         .isEncrypted(encrypted)
         .createdAt(LocalDateTime.now())
@@ -86,14 +87,14 @@ public class ExportService {
 
     auditLogService.logAction(username, AuditAction.VAULT_EXPORTED,
         String.format("Exported %d entries in %s format (encrypted: %s)",
-            entries.size(), format.toUpperCase(), encrypted));
+            entries.size(), normalizedFormat, encrypted));
 
     logger.info("Vault exported for user: {} ({} entries, encrypted: {})",
         username, entries.size(), encrypted);
 
     return ExportResponse.builder()
         .fileName(export.getFileName())
-        .format(format.toUpperCase())
+        .format(normalizedFormat)
         .entryCount(entries.size())
         .encrypted(encrypted)
         .data(data)
@@ -193,17 +194,26 @@ public class ExportService {
     // Derive the encryption key for decrypting passwords
     SecretKey key = encryptionService.deriveKey(user.getMasterPasswordHash(), user.getSalt());
 
-    ExportFormat exportFormat = ExportFormat.valueOf(format.toUpperCase());
+    String normalizedFormat = normalizeFormat(format);
+    ExportFormat exportFormat = resolveExportFormat(normalizedFormat);
     String data = exportFormat == ExportFormat.CSV ? exportAsCsv(previewEntries, key)
         : exportAsJson(previewEntries, key);
 
     return ExportResponse.builder()
-        .fileName("preview." + format.toLowerCase())
-        .format(format.toUpperCase())
+        .fileName("preview." + exportFormat.name().toLowerCase())
+        .format(normalizedFormat)
         .entryCount(entries.size())
         .encrypted(false)
         .data(data)
         .exportedAt(LocalDateTime.now())
         .build();
+  }
+
+  private String normalizeFormat(String format) {
+    return format == null ? ExportFormat.JSON.name() : format.trim().toUpperCase();
+  }
+
+  private ExportFormat resolveExportFormat(String format) {
+    return "ENCRYPTED".equals(format) ? ExportFormat.JSON : ExportFormat.valueOf(format);
   }
 }

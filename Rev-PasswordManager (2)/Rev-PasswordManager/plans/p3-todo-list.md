@@ -7,30 +7,30 @@
 
 ## Pre-Phase 0: Baseline Cleanup and Alignment (1 week)
 
-- [ ] **7.1 Runtime and dependency alignment**
-  - [ ] Align backend Dockerfile, Maven compiler version
-  - [ ] Align frontend Node version
-  - [ ] Create agreed runtime matrix
-  - [ ] Update README setup instructions
+- [x] **7.1 Runtime and dependency alignment**
+  - [x] Align backend Dockerfile, Maven compiler version
+  - [x] Align frontend Node version
+  - [x] Create agreed runtime matrix
+  - [x] Update README setup instructions
 
-- [ ] **7.2 Secrets and config cleanup**
-  - [ ] Remove hardcoded database secrets from source
-  - [ ] Remove hardcoded JWT secrets from source
-  - [ ] Remove hardcoded mail secrets from source
-  - [ ] Move secrets to environment variables
-  - [ ] Create .env.example
-  - [ ] Standardize config profiles (local, docker, aws)
-  - [ ] Document config matrix
+- [x] **7.2 Secrets and config cleanup**
+  - [x] Remove hardcoded database secrets from source
+  - [x] Remove hardcoded JWT secrets from source
+  - [x] Remove hardcoded mail secrets from source
+  - [x] Move secrets to environment variables
+  - [x] Create .env.example
+  - [x] Standardize config profiles (local, docker, aws)
+  - [x] Document config matrix
 
 - [ ] **7.3 Baseline testing**
-  - [ ] Create smoke test checklist for critical flows
-  - [ ] Ensure backend tests pass consistently
-  - [ ] Ensure frontend tests are runnable
+  - [x] Create smoke test checklist for critical flows
+  - [x] Ensure backend tests pass consistently
+  - [x] Ensure frontend tests are runnable
   - [ ] Test critical flows: register, login, refresh token, 2FA setup
   - [ ] Test critical flows: create vault entry, view sensitive entry
   - [ ] Test critical flows: generate password, export backup
   - [ ] Test critical flows: create and read notification
-  - [ ] Document smoke test results
+  - [x] Document smoke test results
   - [ ] Establish stable baseline
 
 ---
@@ -38,25 +38,26 @@
 ## Phase 1: Containerization, CI/CD, and AWS Deployment (4-5 weeks)
 
 ### Phase 1.1: Container-ready monolith
-- [ ] **1.1.1 Backend Docker setup**
-  - [ ] Finalize backend multi-stage Dockerfile
-  - [ ] Test backend Docker build
-  - [ ] Verify health checks
+- [x] **1.1.1 Backend Docker setup**
+  - [x] Finalize backend multi-stage Dockerfile
+  - [x] Test backend Docker build
+  - [x] Verify health checks
 
-- [ ] **1.1.2 Frontend Docker setup**
-  - [ ] Finalize frontend multi-stage Dockerfile
-  - [ ] Test frontend Docker build
-  - [ ] Configure Nginx for production
+- [x] **1.1.2 Frontend Docker setup**
+  - [x] Finalize frontend multi-stage Dockerfile
+  - [x] Test frontend Docker build
+  - [x] Configure Nginx for production
 
-- [ ] **1.1.3 Docker Compose**
-  - [ ] Create Docker Compose for mysql
-  - [ ] Create Docker Compose for backend
-  - [ ] Create Docker Compose for frontend
-  - [ ] Verify file storage mounting
-  - [ ] Verify logs volume mounting
-  - [ ] Test full application in containers
+- [x] **1.1.3 Docker Compose**
+  - [x] Create Docker Compose for mysql
+  - [x] Create Docker Compose for backend
+  - [x] Create Docker Compose for frontend
+  - [x] Verify file storage mounting
+  - [x] Verify logs volume mounting
+  - [x] Test full application in containers
 
 ### Phase 1.2: AWS infrastructure setup
+Terraform definitions were added under `infra/aws`; apply-time provisioning remains pending.
 - [ ] **1.2.1 Network setup**
   - [ ] Provision VPC
   - [ ] Provision subnets (public/private)
@@ -78,6 +79,7 @@
   - [ ] Register backend instances
 
 ### Phase 1.3: Secrets and cloud configuration
+Secrets Manager resources are defined in Terraform; actual secret creation still depends on `terraform apply`.
 - [ ] **1.3.1 Secrets Manager**
   - [ ] Create AWS Secrets Manager entries
   - [ ] Database credentials
@@ -85,30 +87,30 @@
   - [ ] Mail credentials
 
 - [ ] **1.3.2 Spring configuration**
-  - [ ] Wire config to load from environment
-  - [ ] Wire config to load from AWS Secrets Manager
-  - [ ] Separate local config from AWS config
+  - [x] Wire config to load from environment
+  - [x] Wire config to load from AWS Secrets Manager
+  - [x] Separate local config from AWS config
   - [ ] Test cloud config loading
 
 - [ ] **1.3.3 Documentation**
-  - [ ] Create secret rotation checklist
-  - [ ] Document deployment config
+  - [x] Create secret rotation checklist
+  - [x] Document deployment config
 
 ### Phase 1.4: Jenkins CI/CD pipeline
-- [ ] **1.4.1 Pipeline stages**
-  - [ ] Create Jenkinsfile
-  - [ ] Configure Git checkout stage
-  - [ ] Configure Maven build stage
-  - [ ] Configure backend test stage
-  - [ ] Configure SonarQube analysis
-  - [ ] Configure Docker image build
-  - [ ] Configure image push to ECR
-  - [ ] Configure deployment to EC2/ASG
+- [x] **1.4.1 Pipeline stages**
+  - [x] Create Jenkinsfile
+  - [x] Configure Git checkout stage
+  - [x] Configure Maven build stage
+  - [x] Configure backend test stage
+  - [x] Configure SonarQube analysis
+  - [x] Configure Docker image build
+  - [x] Configure image push to ECR
+  - [x] Configure deployment to EC2/ASG
 
-- [ ] **1.4.2 Quality gates**
-  - [ ] Configure build fail on test failure
-  - [ ] Configure build fail on image build failure
-  - [ ] Configure deployment only after successful build
+- [x] **1.4.2 Quality gates**
+  - [x] Configure build fail on test failure
+  - [x] Configure build fail on image build failure
+  - [x] Configure deployment only after successful build
 
 - [ ] **1.4.3 Pipeline testing**
   - [ ] Test full CI/CD flow
@@ -116,18 +118,18 @@
 
 ### Phase 1.5: Production hardening and validation
 - [ ] **1.5.1 Health checks**
-  - [ ] Add Actuator health endpoints
+  - [x] Add Actuator health endpoints
   - [ ] Verify ALB target health
-  - [ ] Configure health check intervals
+  - [x] Configure health check intervals
 
 - [ ] **1.5.2 Logging and monitoring**
   - [ ] Verify logs are collected
-  - [ ] Configure log aggregation
+  - [x] Configure log aggregation
 
 - [ ] **1.5.3 Validation**
   - [ ] Run smoke tests against AWS
-  - [ ] Document rollback process
-  - [ ] Create deployment validation report
+  - [x] Document rollback process
+  - [x] Create deployment validation report
 
 ---
 
@@ -374,7 +376,7 @@
 
 | Phase | Duration | Status |
 |-------|----------|--------|
-| Pre-Phase 0 | 1 week | [x] |
+| Pre-Phase 0 | 1 week | [ ] |
 | Phase 1 | 4-5 weeks | [ ] |
 | Phase 2A | 2 weeks | [ ] |
 | Phase 2B | 1-2 weeks | [ ] |

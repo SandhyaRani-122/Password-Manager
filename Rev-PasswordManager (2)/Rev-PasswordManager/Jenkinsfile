@@ -1,0 +1,155 @@
+def runCommand(String unixCommand, String windowsCommand = null) {
+    if (isUnix()) {
+        sh unixCommand
+    } else {
+        bat(windowsCommand ?: unixCommand)
+    }
+}
+
+pipeline {
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    environment {
+        APP_NAME = 'password-manager'
+        AWS_REGION = "${env.AWS_REGION ?: 'us-east-1'}"
+        ECR_BACKEND_REPOSITORY = "${env.ECR_BACKEND_REPOSITORY ?: 'password-manager-phase1-backend'}"
+        ECR_FRONTEND_REPOSITORY = "${env.ECR_FRONTEND_REPOSITORY ?: 'password-manager-phase1-frontend'}"
+        ASG_NAME = "${env.ASG_NAME ?: ''}"
+        SONARQUBE_ENV = "${env.SONARQUBE_ENV ?: ''}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                script {
+                    env.IMAGE_TAG = env.GIT_COMMIT.take(12)
+                    env.ECR_REGISTRY = env.AWS_ACCOUNT_ID
+                        ? "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+                        : ''
+                }
+            }
+        }
+
+        stage('Build & Test') {
+            steps {
+                dir('Rev-PasswordManager (2)/Rev-PasswordManager') {
+                    stage('Backend Build') {
+                        script {
+                            runCommand('mvn -B -DskipTests clean package')
+                        }
+                    }
+
+                    stage('Backend Tests') {
+                        script {
+                            runCommand('mvn -B test')
+                        }
+                        post {
+                            always {
+                                junit allowEmptyResults: true, testResults: 'target/surefire-reports/TEST-*.xml'
+                            }
+                        }
+                    }
+
+                    stage('Docker Build') {
+                        script {
+                            runCommand(
+                                """
+                                docker build -t ${APP_NAME}-backend:${IMAGE_TAG} .
+                                docker build -t ${APP_NAME}-frontend:${IMAGE_TAG} ./frontend
+                                """.trim(),
+                                """
+                                docker build -t ${APP_NAME}-backend:${IMAGE_TAG} .
+                                docker build -t ${APP_NAME}-frontend:${IMAGE_TAG} .\\frontend
+                                """.trim()
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Push Images To ECR') {
+            when {
+                branch 'main'
+            }
+            steps {
+                script {
+                    if (!env.AWS_ACCOUNT_ID?.trim()) {
+                        error('AWS_ACCOUNT_ID must be configured for the ECR push stage.')
+                    }
+
+                    runCommand(
+                        """
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                        docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
+                        docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
+                        docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
+                        docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
+                        docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
+                        docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
+                        docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
+                        docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
+                        """.trim()
+                    )
+                }
+            }
+        }
+
+        stage('Deploy To Auto Scaling Group') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression {
+                        return env.ASG_NAME?.trim()
+                    }
+                }
+            }
+            steps {
+                script {
+                    runCommand(
+                        """
+                        aws autoscaling start-instance-refresh \
+                          --region ${AWS_REGION} \
+                          --auto-scaling-group-name ${ASG_NAME} \
+                          --preferences '{"MinHealthyPercentage":50,"InstanceWarmup":180}'
+                        """.trim(),
+                        """
+                        aws autoscaling start-instance-refresh `
+                          --region ${AWS_REGION} `
+                          --auto-scaling-group-name ${ASG_NAME} `
+                          --preferences "{""MinHealthyPercentage"":50,""InstanceWarmup"":180}"
+                        """.trim()
+                    )
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts allowEmptyArchive: true, artifacts: 'frontend/dist/**/*'
+        }
+        cleanup {
+            script {
+                runCommand(
+                    """
+                    docker image rm ${APP_NAME}-backend:${IMAGE_TAG} || true
+                    docker image rm ${APP_NAME}-frontend:${IMAGE_TAG} || true
+                    """.trim(),
+                    """
+                    docker image rm ${APP_NAME}-backend:${IMAGE_TAG}
+                    docker image rm ${APP_NAME}-frontend:${IMAGE_TAG}
+                    exit 0
+                    """.trim()
+                )
+            }
+        }
+    }
+}

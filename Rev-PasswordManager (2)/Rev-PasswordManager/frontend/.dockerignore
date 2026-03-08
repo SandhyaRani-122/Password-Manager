@@ -5,9 +5,11 @@ yarn-debug.log*
 yarn-error.log*
 
 # Build output
+.angular
 dist
 dist-ssr
 out-tsc
+.scannerwork
 
 # IDE
 .idea

@@ -34,7 +34,7 @@ export class ExportComponent implements OnInit {
 
   exportFormats = [
     { value: 'JSON', label: 'JSON (Unencrypted)', description: 'Standard JSON format for backups and transfers' },
-    { value: 'ENCRYPTED_JSON', label: 'Encrypted (JSON)', description: 'Password-protected encrypted JSON file for maximum security' }
+    { value: 'ENCRYPTED', label: 'Encrypted (JSON)', description: 'Password-protected encrypted JSON file for maximum security' }
   ];
 
   constructor(
@@ -55,7 +55,7 @@ export class ExportComponent implements OnInit {
 
     // Subscribe to format changes to toggle password field validation
     this.exportForm.get('format')?.valueChanges.subscribe((format) => {
-      this.showPasswordField = format === 'ENCRYPTED_JSON';
+      this.showPasswordField = format === 'ENCRYPTED';
       const passwordControl = this.exportForm.get('password');
 
       if (this.showPasswordField) {
@@ -75,13 +75,11 @@ export class ExportComponent implements OnInit {
     }
 
     const format: string = this.exportForm.value.format;
-    // If ENCRYPTED_JSON is selected, send JSON as the format but include the password
-    const actualFormat = format === 'ENCRYPTED_JSON' ? 'JSON' : format;
-    const password = format === 'ENCRYPTED_JSON' ? this.exportForm.value.password : undefined;
+    const password = format === 'ENCRYPTED' ? this.exportForm.value.password : undefined;
 
     this.isLoading = true;
 
-    this.backupService.exportVault(actualFormat, password || undefined)
+    this.backupService.exportVault(format, password || undefined)
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (response: ExportResponse) => {

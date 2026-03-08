@@ -88,7 +88,7 @@ describe('ImportComponent', () => {
       component.handleFileSelection(file);
 
       expect(snackBar.open).toHaveBeenCalledWith(
-        'Please select a valid JSON file',
+        'Please select a valid JSON or encrypted export file',
         'Dismiss',
         { duration: 5000, panelClass: 'error-snackbar' }
       );

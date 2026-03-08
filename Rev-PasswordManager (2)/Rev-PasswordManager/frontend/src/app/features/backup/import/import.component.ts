@@ -228,11 +228,16 @@ export class ImportComponent {
     this.currentStep = ImportStep.IMPORTING;
     this.isLoading = true;
 
-    this.backupService.importVault({
+    const request: any = {
       data: this.fileContent,
-      format: 'JSON',
-      password: this.isEncryptedFile ? this.decryptionPassword : undefined
-    } as any)
+      format: 'JSON'
+    };
+
+    if (this.isEncryptedFile) {
+      request.password = this.decryptionPassword;
+    }
+
+    this.backupService.importVault(request)
       .pipe(finalize(() => this.isLoading = false))
       .subscribe({
         next: (result: ImportResult) => {

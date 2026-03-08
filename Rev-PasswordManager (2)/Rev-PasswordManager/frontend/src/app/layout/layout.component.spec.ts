@@ -13,7 +13,7 @@ import {
   ChevronLeft, ChevronRight, Vault, Search, Check, RotateCw, ArrowRight, Plus, Eye,
   EyeOff, X, Copy, Edit2, ShieldAlert, Key, Smartphone, Laptop, MapPin, AlertTriangle,
   Calendar, User, Shield, Sliders, Monitor, Sun, Moon, ChevronDown, CalendarX, ShieldCheck,
-  AlertCircle, CheckCircle, ShieldOff, BarChart2, Activity, TrendingUp, TrendingDown, Minus, Clock, ChevronUp,
+  AlertCircle, CheckCircle, ShieldOff, BarChart2, Activity, TrendingUp, TrendingDown, Menu, Minus, Clock, ChevronUp,
   Download, Upload, History as HistoryIcon
 } from 'lucide-angular';
 
@@ -50,7 +50,7 @@ describe('LayoutComponent', () => {
           X, Copy, Edit2, ShieldAlert, Key, Smartphone, Laptop, MapPin, AlertTriangle,
           Calendar, User, Shield, Sliders, Monitor, Sun, Moon, ChevronDown, CalendarX,
           ShieldCheck, AlertCircle, CheckCircle, ShieldOff, BarChart2, Activity,
-          TrendingUp, TrendingDown, Minus, Clock, ChevronUp, Download, Upload, History: HistoryIcon
+          TrendingUp, TrendingDown, Menu, Minus, Clock, ChevronUp, Download, Upload, History: HistoryIcon
         })),
         { provide: AuthenticationService, useValue: authSpy },
         { provide: IdleService, useValue: idleSpy },

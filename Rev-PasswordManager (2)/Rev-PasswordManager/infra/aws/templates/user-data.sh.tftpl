@@ -1,0 +1,50 @@
+#!/bin/bash
+set -euxo pipefail
+
+dnf update -y
+dnf install -y docker docker-compose-plugin jq awscli
+systemctl enable --now docker
+
+mkdir -p /opt/password-manager
+
+cat > /opt/password-manager/docker-compose.yml <<'COMPOSE'
+${compose_content}
+COMPOSE
+
+database_secret_json="$(aws secretsmanager get-secret-value \
+  --region ${aws_region} \
+  --secret-id ${database_secret_name} \
+  --query SecretString \
+  --output text)"
+
+application_secret_json="$(aws secretsmanager get-secret-value \
+  --region ${aws_region} \
+  --secret-id ${application_secret_name} \
+  --query SecretString \
+  --output text)"
+
+cat > /opt/password-manager/.env <<EOF
+SPRING_PROFILES_ACTIVE=aws
+SPRING_DATASOURCE_URL=$(jq -r '.SPRING_DATASOURCE_URL' <<< "$database_secret_json")
+SPRING_DATASOURCE_USERNAME=$(jq -r '.SPRING_DATASOURCE_USERNAME' <<< "$database_secret_json")
+SPRING_DATASOURCE_PASSWORD=$(jq -r '.SPRING_DATASOURCE_PASSWORD' <<< "$database_secret_json")
+JWT_SECRET=$(jq -r '.JWT_SECRET' <<< "$application_secret_json")
+JWT_ACCESS_TOKEN_EXPIRATION=$(jq -r '.JWT_ACCESS_TOKEN_EXPIRATION' <<< "$application_secret_json")
+JWT_REFRESH_TOKEN_EXPIRATION=$(jq -r '.JWT_REFRESH_TOKEN_EXPIRATION' <<< "$application_secret_json")
+SPRING_MAIL_HOST=$(jq -r '.SPRING_MAIL_HOST' <<< "$application_secret_json")
+SPRING_MAIL_PORT=$(jq -r '.SPRING_MAIL_PORT' <<< "$application_secret_json")
+SPRING_MAIL_USERNAME=$(jq -r '.SPRING_MAIL_USERNAME' <<< "$application_secret_json")
+SPRING_MAIL_PASSWORD=$(jq -r '.SPRING_MAIL_PASSWORD' <<< "$application_secret_json")
+AI_OPENAI_API_KEY=$(jq -r '.AI_OPENAI_API_KEY' <<< "$application_secret_json")
+CORS_ALLOWED_ORIGINS=${cors_allowed_origins}
+LOGGING_FILE_NAME=/app/logs/password-manager.log
+SECURE_FILES_STORAGE_PATH=/app/secure-files
+AWS_REGION=${aws_region}
+AWS_LOG_GROUP=${log_group_name}
+EOF
+
+aws ecr get-login-password --region ${aws_region} | docker login --username AWS --password-stdin ${ecr_registry}
+
+cd /opt/password-manager
+docker compose pull
+docker compose up -d
