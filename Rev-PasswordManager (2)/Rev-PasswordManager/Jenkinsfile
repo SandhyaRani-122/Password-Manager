@@ -85,7 +85,7 @@ pipeline {
 
         stage('Push Images To ECR') {
             when {
-                branch 'main'
+                branch '*/main'
             }
             steps {
                 script {
@@ -113,7 +113,7 @@ pipeline {
         stage('Deploy To EC2') {
             when {
                 allOf {
-                    branch 'main'
+                    branch '*/main'
                     expression {
                         return env.ASG_NAME?.trim()
                     }
