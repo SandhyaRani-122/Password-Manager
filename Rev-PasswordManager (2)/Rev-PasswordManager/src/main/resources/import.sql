@@ -1,1 +1,1 @@
-ALTER TABLE rev_password_manager.audit_logs MODIFY COLUMN action VARCHAR(50) NOT NULL;
+-- H2-compatible import.sql (MySQL-specific ALTER TABLE removed; the action column constraint is defined on the entity)
