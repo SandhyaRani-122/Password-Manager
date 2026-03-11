@@ -22,7 +22,7 @@ pipeline {
     environment {
         APP_NAME = 'password-manager'
         AWS_ACCOUNT_ID="${env.AWS_ACCOUNT_ID ?: '594079134433'}"
-        AWS_REGION = "${env.AWS_REGION ?: 'us-east-1'}"
+        AWS_REGION = "${env.AWS_REGION ?: 'ap-south-2'}"
         ECR_BACKEND_REPOSITORY = "${env.ECR_BACKEND_REPOSITORY ?: 'password-manager-phase1-backend'}"
         ECR_FRONTEND_REPOSITORY = "${env.ECR_FRONTEND_REPOSITORY ?: 'password-manager-phase1-frontend'}"
         ASG_NAME = "${env.ASG_NAME ?: ''}"
@@ -123,7 +123,7 @@ pipeline {
             }
             steps {
                 script {
-                    def instanceId = 'i-08800fb73214ce6ce'
+                    def instanceId = 'i-0ee8caaca2b0748b0'
                     runCommand(
                         """
                         aws ssm send-command \\
