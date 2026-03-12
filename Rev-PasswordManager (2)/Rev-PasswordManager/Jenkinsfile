@@ -1,3 +1,11 @@
+def runCommand(String unixCommand, String windowsCommand = null) {
+    if (isUnix()) {
+        sh unixCommand
+    } else {
+        bat(windowsCommand ?: unixCommand)
+    }
+}
+
 pipeline {
     agent any
 
@@ -92,7 +100,7 @@ pipeline {
                         error('AWS_ACCOUNT_ID must be configured for the ECR push stage.')
                     }
 
-                    withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', 
+                    withCredentials([usernamePassword(credentialsId: 'aws-credentials', 
                                                      usernameVariable: 'AWS_ACCESS_KEY_ID', 
                                                      passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         runCommand(
@@ -120,7 +128,7 @@ pipeline {
             steps {
                 script {
                     def instanceId = 'i-0ee8caaca2b0748b0'
-                    withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', 
+                    withCredentials([usernamePassword(credentialsId: 'aws-credentials', 
                                                      usernameVariable: 'AWS_ACCESS_KEY_ID', 
                                                      passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         runCommand(
@@ -168,13 +176,5 @@ pipeline {
                 )
             }
         }
-    }
-}
-
-def runCommand(String unixCommand, String windowsCommand = null) {
-    if (isUnix()) {
-        sh unixCommand
-    } else {
-        bat(windowsCommand ?: unixCommand)
     }
 }
