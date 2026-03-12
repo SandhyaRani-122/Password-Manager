@@ -1,0 +1,7 @@
+{
+    "commands": [
+        "sudo docker ps -a",
+        "sudo docker logs --tail 50 frontend",
+        "sudo docker logs --tail 50 backend"
+    ]
+}

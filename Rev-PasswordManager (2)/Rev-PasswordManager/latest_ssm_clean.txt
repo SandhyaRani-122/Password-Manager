@@ -1,0 +1,57 @@
+﻿{
+    "Commands": [
+        {
+            "CommandId": "49495be9-ff40-4cfa-8c80-3a83c31b4dfb",
+            "DocumentName": "AWS-RunShellScript",
+            "DocumentVersion": "$DEFAULT",
+            "Comment": "",
+            "ExpiresAfter": "2026-03-12T13:48:14.195000+05:30",
+            "Parameters": {
+                "commands": [
+                    "aws ecr get-login-password --region ap-south-2 | docker login --username AWS --password-stdin 594079134433.dkr.ecr.ap-south-2.amazonaws.com",
+                    "docker pull 594079134433.dkr.ecr.ap-south-2.amazonaws.com/password-manager-phase1-backend:latest",
+                    "docker pull 594079134433.dkr.ecr.ap-south-2.amazonaws.com/password-manager-phase1-frontend:latest",
+                    "docker stop backend frontend || true",
+                    "docker rm backend frontend || true",
+                    "docker network create rev-net || true",
+                    "docker run -d --name db --network rev-net -e MYSQL_DATABASE=rev_password_manager -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 --restart unless-stopped mysql:8.0 --innodb-buffer-pool-size=64M || true",
+                    "docker run -d --name backend --network rev-net -e SPRING_PROFILES_ACTIVE=docker -e SPRING_DATASOURCE_URL='jdbc:mysql://db:3306/rev_password_manager?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true' -e SPRING_DATASOURCE_USERNAME=admin -e SPRING_DATASOURCE_PASSWORD=admin -e CORS_ALLOWED_ORIGINS=http://18.60.211.4 -e SPRING_MAIL_HOST=smtp.gmail.com -e SPRING_MAIL_PORT=587 -e SPRING_MAIL_USERNAME=kadirisandhyarani122@gmail.com -e \"SPRING_MAIL_PASSWORD=mugw wmat xlai zlgp\" -e \"JWT_SECRET=vCtHgKwZoXrbpPuI1GA5V2cWMhNymkB7Jq0DFY8ljzLdUQS9ETO6s3xaen4Rif=\" -p 8080:8080 -p 8082:8082 --restart unless-stopped 594079134433.dkr.ecr.ap-south-2.amazonaws.com/password-manager-phase1-backend:latest",
+                    "docker run -d --name frontend --network rev-net -p 80:80 --restart unless-stopped 594079134433.dkr.ecr.ap-south-2.amazonaws.com/password-manager-phase1-frontend:latest"
+                ]
+            },
+            "InstanceIds": [
+                "i-0ee8caaca2b0748b0"
+            ],
+            "Targets": [],
+            "RequestedDateTime": "2026-03-12T11:48:14.195000+05:30",
+            "Status": "InProgress",
+            "StatusDetails": "InProgress",
+            "OutputS3Region": "ap-south-2",
+            "OutputS3BucketName": "",
+            "OutputS3KeyPrefix": "",
+            "MaxConcurrency": "50",
+            "MaxErrors": "0",
+            "TargetCount": 1,
+            "CompletedCount": 0,
+            "ErrorCount": 0,
+            "DeliveryTimedOutCount": 0,
+            "ServiceRole": "",
+            "NotificationConfig": {
+                "NotificationArn": "",
+                "NotificationEvents": [],
+                "NotificationType": ""
+            },
+            "CloudWatchOutputConfig": {
+                "CloudWatchLogGroupName": "",
+                "CloudWatchOutputEnabled": false
+            },
+            "TimeoutSeconds": 3600,
+            "AlarmConfiguration": {
+                "IgnorePollAlarmFailure": false,
+                "Alarms": []
+            },
+            "TriggeredAlarms": []
+        }
+    ],
+    "NextToken": "AAEAAZsM51SyLfT+Dohxw1V8rBJN7hLP62Bt/eiu6E++yP2YAAAAAGmyY3YH3uxHKqZcLslPBkn7ldg4fuod1HvI/Yq/eeFIWmC9VjclNFNJsn2fRSCcKP/EgPXE9V4rwaTinz8W5hM6OZ2Kypu+XQFAutnVh822vR1bq+K2pIUZSrzDycsAL5WbD11CpgINJJ+LRiU0yF+Xg5NF29NsFsZEXrkDqqRwuJttqgU8A7I6Q0sjvmKqccVm5PuezrPbcvoXrjg5jisrxKA/hipAXUsOgIop9IdWDCWMooDc3GkBpmfI3l6ClNsRjQO7ibco2yRhJ9mx9jAvUQNfJGGLrWBS5Km/VFTyL//THB8Tj2egQi1PhZkLAg/JeCxTIY9bMA1gKAX/wkcENAQJ8SZjFcmu010NgkW1iU9fza0Uy4jwiagyViBR46YUxd/F22020BJw/gB02R30smRD97/F9cJREcg1towI73ZmkcLKd7Z9Jl4J7Vw46wWBsxt6E6E+LoacdbEFYX+VWS8P3XGcFJqCE5GlP+2UPmFgtA=="
+}

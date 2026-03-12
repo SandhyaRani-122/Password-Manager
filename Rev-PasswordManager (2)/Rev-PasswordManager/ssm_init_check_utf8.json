@@ -1,0 +1,48 @@
+﻿{
+    "Command": {
+        "CommandId": "4d1ac9ee-1e35-4652-b425-7e290009e45c",
+        "DocumentName": "AWS-RunShellScript",
+        "DocumentVersion": "$DEFAULT",
+        "Comment": "",
+        "ExpiresAfter": "2026-03-12T14:05:58.831000+05:30",
+        "Parameters": {
+            "commands": [
+                "sudo tail -n 100 /var/log/cloud-init-output.log",
+                "which docker",
+                "sudo systemctl status docker"
+            ]
+        },
+        "InstanceIds": [
+            "i-0ee8caaca2b0748b0"
+        ],
+        "Targets": [],
+        "RequestedDateTime": "2026-03-12T12:05:58.831000+05:30",
+        "Status": "Pending",
+        "StatusDetails": "Pending",
+        "OutputS3Region": "ap-south-2",
+        "OutputS3BucketName": "",
+        "OutputS3KeyPrefix": "",
+        "MaxConcurrency": "50",
+        "MaxErrors": "0",
+        "TargetCount": 1,
+        "CompletedCount": 0,
+        "ErrorCount": 0,
+        "DeliveryTimedOutCount": 0,
+        "ServiceRole": "",
+        "NotificationConfig": {
+            "NotificationArn": "",
+            "NotificationEvents": [],
+            "NotificationType": ""
+        },
+        "CloudWatchOutputConfig": {
+            "CloudWatchLogGroupName": "",
+            "CloudWatchOutputEnabled": false
+        },
+        "TimeoutSeconds": 3600,
+        "AlarmConfiguration": {
+            "IgnorePollAlarmFailure": false,
+            "Alarms": []
+        },
+        "TriggeredAlarms": []
+    }
+}

@@ -1,0 +1,8 @@
+﻿COMMAND	1cfeb745-ab48-4f4e-bf36-1ed39ea40767		0	0	AWS-RunShellScript	$DEFAULT	0	2026-03-12T16:24:00.097000+05:30	50	0			ap-south-2	2026-03-12T14:24:00.097000+05:30		Pending	Pending	1	3600
+ALARMCONFIGURATION	False
+CLOUDWATCHOUTPUTCONFIG		False
+INSTANCEIDS	i-0ee8caaca2b0748b0
+NOTIFICATIONCONFIG		
+COMMANDS	sudo docker stop frontend || true
+COMMANDS	sudo docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot certonly --standalone -d vault-passwordmanager.duckdns.org --non-interactive --agree-tos -m dummy@passwordmanager.org
+COMMANDS	sudo docker start frontend || true

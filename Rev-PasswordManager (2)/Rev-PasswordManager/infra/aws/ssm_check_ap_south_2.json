@@ -1,0 +1,10 @@
+{
+    "DocumentName": "AWS-RunShellScript",
+    "InstanceIds": ["i-0ee8caaca2b0748b0"],
+    "Parameters": {
+        "commands": [
+            "docker ps -a",
+            "docker images"
+        ]
+    }
+}

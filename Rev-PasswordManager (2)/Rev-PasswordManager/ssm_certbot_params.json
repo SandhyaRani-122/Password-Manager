@@ -1,0 +1,7 @@
+{
+  "commands": [
+    "sudo docker stop frontend || true",
+    "sudo docker run --rm -p 80:80 -v /etc/letsencrypt:/etc/letsencrypt -v /var/lib/letsencrypt:/var/lib/letsencrypt certbot/certbot certonly --standalone -d vault-passwordmanager.duckdns.org --non-interactive --agree-tos -m dummy@passwordmanager.org",
+    "sudo docker start frontend || true"
+  ]
+}
