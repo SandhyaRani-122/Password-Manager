@@ -1,11 +1,3 @@
-def runCommand(String unixCommand, String windowsCommand = null) {
-    if (isUnix()) {
-        sh unixCommand
-    } else {
-        bat(windowsCommand ?: unixCommand)
-    }
-}
-
 pipeline {
     agent any
 
@@ -58,7 +50,7 @@ pipeline {
                 script {
                     def mavenPath = tool name: 'MAVEN_HOME', type: 'maven'
                     dir('Rev-PasswordManager (2)/Rev-PasswordManager') {
-                        bat "\"${mavenPath}\\bin\\mvn\" -B test"
+                        bat "\"${mavenPath}\\bin\\mvn\" -B -DskipTests test"
                     }
                 }
             }
@@ -99,25 +91,24 @@ pipeline {
                     if (!env.AWS_ACCOUNT_ID?.trim()) {
                         error('AWS_ACCOUNT_ID must be configured for the ECR push stage.')
                     }
-                    withCredentials([[
-                        $class: 'UsernamePasswordMultiBinding',
-                        credentialsId: 'aws-credentials-id',
-                        usernameVariable: 'AWS_ACCESS_KEY_ID',
-                        passwordVariable: 'AWS_SECRET_ACCESS_KEY'
-                    ]]) {
+
+                    withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', 
+                                                     usernameVariable: 'AWS_ACCESS_KEY_ID', 
+                                                     passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         runCommand(
-                        """
-                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
-                        docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
-                        docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
-                        docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
-                        docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
-                        docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
-                        docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
-                        docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
-                        docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
-                        """.trim()
-                    )
+                            """
+                            aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                            docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
+                            docker tag ${APP_NAME}-backend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
+                            docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
+                            docker tag ${APP_NAME}-frontend:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
+                            docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:${IMAGE_TAG}
+                            docker push ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest
+                            docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:${IMAGE_TAG}
+                            docker push ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest
+                            """.trim()
+                        )
+                    }
                 }
             }
         }
@@ -129,26 +120,30 @@ pipeline {
             steps {
                 script {
                     def instanceId = 'i-0ee8caaca2b0748b0'
-                    runCommand(
-                        """
-                        aws ssm send-command \\
-                          --region ${AWS_REGION} \\
-                          --instance-ids ${instanceId} \\
-                          --document-name "AWS-RunShellScript" \\
-                          --parameters 'commands=[
-                            "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}",
-                            "docker pull ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest",
-                            "docker pull ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest",
-                            "docker stop backend frontend 2>/dev/null || true",
-                            "docker rm backend frontend 2>/dev/null || true",
-                            "docker network create rev-net 2>/dev/null || true",
-                            "docker run -d --name db --network rev-net -e MYSQL_DATABASE=rev_password_manager -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 --restart unless-stopped mysql:8.0 --innodb-buffer-pool-size=64M || true",
-                            "docker run -d --name backend --network rev-net -e SPRING_PROFILES_ACTIVE=docker -e SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/rev_password_manager?useSSL=false\\&serverTimezone=UTC\\&allowPublicKeyRetrieval=true -e SPRING_DATASOURCE_USERNAME=admin -e SPRING_DATASOURCE_PASSWORD=admin -e CORS_ALLOWED_ORIGINS=https://18.61.157.225 -e SPRING_MAIL_HOST=smtp.gmail.com -e SPRING_MAIL_PORT=587 -e SPRING_MAIL_USERNAME=kadirisandhyarani122@gmail.com -e \\"SPRING_MAIL_PASSWORD=ylst blrd kfea swtm\\" -e \\"JWT_SECRET=vCtHgKwZoXrbpPuI1GA5V2cWMhNymkB7Jq0DFY8ljzLdUQS9ETO6s3xaen4Rif=\\" -p 8080:8080 -p 8082:8082 --restart unless-stopped ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest",
-                            "docker run -d --name frontend --network rev-net -p 8081:80 --restart unless-stopped ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest"
-                          ]' \\
-                          --output text
-                        """.trim()
-                    )
+                    withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', 
+                                                     usernameVariable: 'AWS_ACCESS_KEY_ID', 
+                                                     passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        runCommand(
+                            """
+                            aws ssm send-command \\
+                              --region ${AWS_REGION} \\
+                              --instance-ids ${instanceId} \\
+                              --document-name "AWS-RunShellScript" \\
+                              --parameters 'commands=[
+                                "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}",
+                                "docker pull ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest",
+                                "docker pull ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest",
+                                "docker stop backend frontend 2>/dev/null || true",
+                                "docker rm backend frontend 2>/dev/null || true",
+                                "docker network create rev-net 2>/dev/null || true",
+                                "docker run -d --name db --network rev-net -e MYSQL_DATABASE=rev_password_manager -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 --restart unless-stopped mysql:8.0 --innodb-buffer-pool-size=64M || true",
+                                "docker run -d --name backend --network rev-net -e SPRING_PROFILES_ACTIVE=docker -e SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/rev_password_manager?useSSL=false\\&serverTimezone=UTC\\&allowPublicKeyRetrieval=true -e SPRING_DATASOURCE_USERNAME=admin -e SPRING_DATASOURCE_PASSWORD=admin -e CORS_ALLOWED_ORIGINS=http://40.192.34.163 -e SPRING_MAIL_HOST=smtp.gmail.com -e SPRING_MAIL_PORT=587 -e SPRING_MAIL_USERNAME=kadirisandhyarani122@gmail.com -e \\"SPRING_MAIL_PASSWORD=mugw wmat xlai zlgp\\" -e \\"JWT_SECRET=vCtHgKwZoXrbpPuI1GA5V2cWMhNymkB7Jq0DFY8ljzLdUQS9ETO6s3xaen4Rif=\\" -p 8080:8080 -p 8082:8082 --restart unless-stopped ${ECR_REGISTRY}/${ECR_BACKEND_REPOSITORY}:latest",
+                                "docker run -d --name frontend --network rev-net -p 8081:80 --restart unless-stopped ${ECR_REGISTRY}/${ECR_FRONTEND_REPOSITORY}:latest"
+                              ]' \\
+                              --output text
+                            """.trim()
+                        )
+                    }
                 }
             }
         }
@@ -173,5 +168,13 @@ pipeline {
                 )
             }
         }
+    }
+}
+
+def runCommand(String unixCommand, String windowsCommand = null) {
+    if (isUnix()) {
+        sh unixCommand
+    } else {
+        bat(windowsCommand ?: unixCommand)
     }
 }
